@@ -1,0 +1,96 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Réservation{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Détails de la Réservation</h1>
+
+    <table class="table table-bordered table-striped">
+        <tbody>
+            <tr>
+                <th scope="row">Id</th>
+                <td>{{ reservation.id }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Date Début</th>
+                <td>{{ reservation.dateDebut ? reservation.dateDebut|date('Y-m-d') : '' }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Date Fin</th>
+                <td>{{ reservation.dateFin ? reservation.dateFin|date('Y-m-d') : '' }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Véhicule</th>
+                <td>{{ reservation.vehicule.immatriculation }}</td>
+            </tr>
+         
+            <tr>
+                <th scope="row">Prix Total</th>
+                <td>{{ reservation.getPrixTotal() }} €</td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="d-flex justify-content-between">
+        {% if is_granted('ROLE_ADMIN') %}
+            <a href="{{ path('app_reservation_index') }}" class="btn btn-secondary">Retour à la liste des réservations</a>
+        {% else %}
+            <a href="{{ path('app_vehicule_index') }}" class="btn btn-secondary">Retour à la liste des véhicules</a>
+        {% endif %}
+        <a href="{{ path('app_reservation_edit', {'id': reservation.id}) }}" class="btn btn-primary">Modifier</a>
+        {{ include('reservation/_delete_form.html.twig', { 'class': 'd-inline-block' }) }}
+    </div>
+
+    <hr class="my-4">
+
+    <h2 class="mt-5">Commentaires</h2>
+
+    {% if reservation.comments|length > 0 %}
+        <div class="list-group mt-3">
+            {% for comment in reservation.comments %}
+                <div class="list-group-item">
+                    <h5 class="mb-1">
+                        <strong>{{ comment.user.email }}</strong>
+                        <small class="text-muted">({{ comment.createdAt|date('d/m/Y H:i') }})</small>
+                    </h5>
+                    <p class="mb-1">{{ comment.content }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted">Aucun commentaire pour cette réservation.</p>
+    {% endif %}
+
+    <hr class="my-4">
+
+    <h3 class="mt-4">Ajouter un commentaire</h3>
+
+    <button class="btn btn-info mb-3" id="toggle-comment-form">Masquer le formulaire</button>
+
+    <div class="card mt-3" id="comment-form">
+        <div class="card-body">
+            {{ form_start(commentForm) }}
+                <div class="mb-3">
+                    {{ form_widget(commentForm.content, { 'attr': { 'class': 'form-control', 'placeholder': 'Écrivez votre commentaire ici...' } }) }}
+                </div>
+                <button class="btn btn-success">Envoyer</button>
+            {{ form_end(commentForm) }}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('toggle-comment-form').addEventListener('click', function () {
+        const commentForm = document.getElementById('comment-form');
+        const button = this;
+
+        if (commentForm.style.display === 'none') {
+            commentForm.style.display = 'block';
+            button.textContent = 'Masquer le formulaire';
+        } else {
+            commentForm.style.display = 'none';
+            button.textContent = 'Afficher le formulaire';
+        }
+    });
+</script>
+{% endblock %}

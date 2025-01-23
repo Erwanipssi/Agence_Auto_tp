@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Réserver le véhicule{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Réserver le véhicule</h1>
+
+    <table class="table table-bordered table-striped">
+        <tbody>
+            <tr>
+                <th>Marque</th>
+                <td>{{ vehicule.marque }}</td>
+            </tr>
+            <tr>
+                <th>Modèle</th>
+                <td>{{ vehicule.modele }}</td>
+            </tr>
+            <tr>
+                <th>Prix par jour</th>
+                <td>{{ vehicule.prix }} €</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2 class="mt-4">Choisissez les dates</h2>
+
+    {{ form_start(form) }}
+        <div class="row mb-3">
+            <div class="col-md-6">
+                {{ form_row(form.dateDebut) }}
+            </div>
+            <div class="col-md-6">
+                {{ form_row(form.dateFin) }}
+            </div>
+        </div>
+        <button class="btn btn-success">Réserver</button>
+    {{ form_end(form) }}
+
+    <a href="{{ path('app_vehicule_show', { id: vehicule.id }) }}" class="btn btn-secondary mt-3">Retour</a>
+</div>
+{% endblock %}

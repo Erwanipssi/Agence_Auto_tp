@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Reservation index{% endblock %}
+
+{% block body %}
+    <h1>Reservation index</h1>
+
+  <table class="table mt-3">
+    <thead>
+        <tr>
+            <th>Client</th>
+            <th>Véhicule</th>
+            <th>Date de début</th>
+            <th>Date de fin</th>
+            <th>Prix de la réservation</th> <!-- Nouvelle colonne -->
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for reservation in reservations %}
+            <tr>
+                <td>{{reservation.user.email}}</td>
+                <td>{{ reservation.vehicule.immatriculation }}</td>
+                <td>{{ reservation.dateDebut|date('d/m/Y H:i') }}</td>
+                <td>{{ reservation.dateFin|date('d/m/Y H:i') }}</td>
+                <td>{{ reservation.getPrixTotal() }} €</td> <!-- Prix total -->
+                <td>
+                    <a href="{{ path('app_reservation_show', {'id': reservation.id}) }}" class="btn btn-info btn-sm">Voir</a>
+                    <a href="{{ path('app_reservation_edit', {'id': reservation.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
+                    <form method="post" action="{{ path('app_reservation_delete', {'id': reservation.id}) }}" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr ?');">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reservation.id) }}">
+                        <button class="btn btn-danger btn-sm">Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">Aucune réservation trouvée.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+    <a href="{{ path('app_reservation_new') }}">Create new</a>
+{% endblock %}
