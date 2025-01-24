@@ -93,18 +93,31 @@ class Reservation
 
         return $this;
     }
-
+    public function isTerminated(): bool
+    {
+        $now = new \DateTime();
+        return $this->dateFin < $now;
+    }
+    
     public function getPrixTotal(): float
     {
         if ($this->vehicule === null || $this->dateDebut === null || $this->dateFin === null) {
             return 0;
         }
-
+    
+        $prix = $this->vehicule->getPrix();
         $interval = $this->dateDebut->diff($this->dateFin);
         $days = $interval->days;
-
-        return $this->vehicule->getPrix() * $days;
+    
+        $prix_total = $prix * $days;
+    
+        if ($prix_total > 400) {
+            $prix_total *= 0.9; 
+        }
+    
+        return $prix_total;
     }
+    
 
     public function setPrix(float $prix): self
     {

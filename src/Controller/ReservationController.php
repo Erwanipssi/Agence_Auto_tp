@@ -37,23 +37,29 @@ final class ReservationController extends AbstractController
             $vehicule = $reservation->getVehicule();
             $dateDebut = $reservation->getDateDebut();
             $dateFin = $reservation->getDateFin();
-    
+        
             if ($reservationRepository->isVehiculeReserved($vehicule->getId(), $dateDebut, $dateFin)) {
                 $this->addFlash('error', 'Le véhicule est déjà réservé pour cette période.');
                 return $this->redirectToRoute('app_reservation_new');
             }
-    
+        
             $diff = $dateDebut->diff($dateFin)->days;
             $prixTotal = $vehicule->getPrix() * $diff;
+        
+            if ($prixTotal > 400) {
+                $prixTotal *= 0.9; 
+            }
+        
             $reservation->setPrix($prixTotal);
-    
+        
             $vehicule->setStatut(true);
-    
+        
             $entityManager->persist($reservation);
             $entityManager->flush();
-    
+        
             return $this->redirectToRoute('app_reservation_index', [], Response::HTTP_SEE_OTHER);
         }
+        
     
         return $this->render('reservation/new.html.twig', [
             'reservation' => $reservation,

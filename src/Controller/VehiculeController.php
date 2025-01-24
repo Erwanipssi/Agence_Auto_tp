@@ -73,6 +73,7 @@ final class VehiculeController extends AbstractController
         }
     
         $reservations = $vehicule->getReservations();
+        $reservationCount = count($reservations);
     
         $user = $this->getUser();
         $userReservation = null;
@@ -93,9 +94,11 @@ final class VehiculeController extends AbstractController
         return $this->render('vehicule/show.html.twig', [
             'vehicule' => $vehicule,
             'comments' => $comments,
-            'reservation' => $userReservation, 
+            'reservation' => $userReservation,
+            'reservationCount' => $reservationCount, 
         ]);
     }
+    
     
     #[Route('/{id}/reserve', name: 'app_vehicule_reserve', methods: ['GET', 'POST'])]
 public function reserve(int $id, Request $request, EntityManagerInterface $entityManager): Response
@@ -149,32 +152,52 @@ public function reserve(int $id, Request $request, EntityManagerInterface $entit
 
     
     
-    #[Route('/{id}/edit', name: 'app_vehicule_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Vehicule $vehicule, EntityManagerInterface $entityManager): Response
-    {
-        $form = $this->createForm(VehiculeType::class, $vehicule);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_vehicule_index', [], Response::HTTP_SEE_OTHER);
+#[Route('/{id}/edit', name: 'app_vehicule_edit', methods: ['GET', 'POST'])]
+public function edit(Request $request, Vehicule $vehicule, EntityManagerInterface $entityManager): Response
+{
+    // Vérifier si une réservation active existe pour ce véhicule
+    foreach ($vehicule->getReservations() as $reservation) {
+        if (!$reservation->isTerminated()) {
+            $this->addFlash('error', 'Le véhicule est réservé et la date de fin de réservation n\'est pas encore atteinte.');
+            return $this->redirectToRoute('app_vehicule_index');
         }
-
-        return $this->render('vehicule/edit.html.twig', [
-            'vehicule' => $vehicule,
-            'form' => $form,
-        ]);
     }
+
+    $form = $this->createForm(VehiculeType::class, $vehicule);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Véhicule modifié avec succès.');
+        return $this->redirectToRoute('app_vehicule_index');
+    }
+
+    return $this->render('vehicule/edit.html.twig', [
+        'vehicule' => $vehicule,
+        'form' => $form,
+    ]);
+}
+
 
     #[Route('/{id}', name: 'app_vehicule_delete', methods: ['POST'])]
     public function delete(Request $request, Vehicule $vehicule, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$vehicule->getId(), $request->getPayload()->getString('_token'))) {
-            $entityManager->remove($vehicule);
-            $entityManager->flush();
+        if ($this->isCsrfTokenValid('delete'.$vehicule->getId(), $request->get('_token'))) {
+            try {
+                $entityManager->remove($vehicule);
+                $entityManager->flush();
+                $this->addFlash('success', 'Véhicule supprimé avec succès.');
+                return $this->redirectToRoute('app_vehicule_index', [], Response::HTTP_SEE_OTHER);
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Une erreur est survenue lors de la suppression du véhicule.');
+                return $this->redirectToRoute('app_vehicule_index', [], Response::HTTP_SEE_OTHER);
+
+            }
+        } else {
+            $this->addFlash('error', 'Token CSRF invalide.');
         }
 
-        return $this->redirectToRoute('app_vehicule_index', [], Response::HTTP_SEE_OTHER);
+
     }
 }

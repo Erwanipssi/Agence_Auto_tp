@@ -6,6 +6,7 @@ use App\Repository\VehiculeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: VehiculeRepository::class)]
 class Vehicule
@@ -28,6 +29,7 @@ class Vehicule
     private ?string $type = null;
 
     #[ORM\Column]
+  
     private ?float $prix = null;
 
     #[ORM\Column]
@@ -109,9 +111,6 @@ class Vehicule
         return $this;
     }
 
- 
-   
-    
     public function getStatut(): bool
     {
         return $this->statut;
